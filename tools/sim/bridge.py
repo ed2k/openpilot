@@ -23,6 +23,9 @@ args = parser.parse_args()
 pm = messaging.PubMaster(['frame', 'sensorEvents', 'can'])
 
 W, H = 1164, 874
+eon_rear_focal_length = 910.0 # was 910 pixels
+fov = 2. * np.rad2deg(np.arctan(W/2.0/eon_rear_focal_length))
+print('fov', fov)
 
 def cam_callback(image):
   img = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
@@ -93,7 +96,7 @@ def go(q):
       precipitation_deposits=0.0,
       wind_intensity=0.0,
       sun_azimuth_angle=15.0,
-      sun_altitude_angle=75.0)
+      sun_altitude_angle=1.0)
   world.set_weather(weather)
 
   blueprint_library = world.get_blueprint_library()
@@ -103,6 +106,7 @@ def go(q):
 
   world_map = world.get_map()
   vehicle_bp = random.choice(blueprint_library.filter('vehicle.tesla.*'))
+  print(vehicle_bp)
   vehicle = world.spawn_actor(vehicle_bp, world_map.get_spawn_points()[16])
 
   # make tires less slippery
@@ -166,49 +170,54 @@ def go(q):
 
       m = message.split('_')
       if m[0] == "steer":
-        steer_angle_out = float(m[1])
-        fake_wheel.set_angle(steer_angle_out)  # touching the wheel overrides fake wheel angle
+        steer_angle_out = float(m[1]) * 0.005
+        #fake_wheel.set_angle(steer_angle_out)  # touching the wheel overrides fake wheel angle
+        fake_wheel.angle += steer_angle_out
+        steer_angle_out = fake_wheel.angle
         # print(" === steering overriden === ")
-      if m[0] == "throttle":
+      elif m[0] == "throttle":
         throttle_out = float(m[1]) / 100.
         if throttle_out > 0.3:
           cruise_button = CruiseButtons.CANCEL
           is_openpilot_engaged = False
-      if m[0] == "brake":
+      elif m[0] == "brake":
         brake_out = float(m[1]) / 100.
         if brake_out > 0.3:
           cruise_button = CruiseButtons.CANCEL
           is_openpilot_engaged = False
-      if m[0] == "reverse":
+      elif m[0] == "reverse":
         in_reverse = not in_reverse
         cruise_button = CruiseButtons.CANCEL
         is_openpilot_engaged = False
-      if m[0] == "cruise":
+      elif m[0] == "cruise":
         if m[1] == "down":
           cruise_button = CruiseButtons.DECEL_SET
           is_openpilot_engaged = True
-        if m[1] == "up":
+          vehicle.set_autopilot(False)
+        elif m[1] == "up":
           cruise_button = CruiseButtons.RES_ACCEL
           is_openpilot_engaged = True
-        if m[1] == "cancel":
+          vehicle.set_autopilot(False)
+        elif m[1] == "cancel":
           cruise_button = CruiseButtons.CANCEL
           is_openpilot_engaged = False
+          vehicle.set_autopilot(True)
 
     vel = vehicle.get_velocity()
     speed = math.sqrt(vel.x**2 + vel.y**2 + vel.z**2) * 3.6
     can_function(pm, speed, fake_wheel.angle, rk.frame, cruise_button=cruise_button, is_engaged=is_openpilot_engaged)
 
-    if rk.frame % 1 == 0:  # 20Hz?
+    if rk.frame % 1 == 0:  # 0.01 ==> 100Hz?
       throttle_op, brake_op, steer_torque_op = sendcan_function(sendcan)
+      #steer_torque_op = -steer_torque_op
       # print(" === torq, ",steer_torque_op, " ===")
       if is_openpilot_engaged:
         fake_wheel.response(steer_torque_op * A_steer_torque, speed)
         throttle_out = throttle_op * A_throttle
         brake_out = brake_op * A_brake
         steer_angle_out = fake_wheel.angle
-        # print(steer_torque_op)
-      # print(steer_angle_out)
-      vc = carla.VehicleControl(throttle=throttle_out, steer=steer_angle_out / 3.14, brake=brake_out, reverse=in_reverse)
+        print(rk.frame, steer_angle_out, steer_torque_op)
+      vc = carla.VehicleControl(throttle=throttle_out, steer=steer_angle_out / 3.1415926, brake=brake_out, reverse=in_reverse)
       vehicle.apply_control(vc)
 
     rk.keep_time()
@@ -220,7 +229,7 @@ if __name__ == "__main__":
   params.put("HasAcceptedTerms", terms_version)
   params.put("CompletedTrainingVersion", training_version)
   params.put("CommunityFeaturesToggle", "1")
-  params.put("CalibrationParams", '{"vanishing_point": [582.06, 442.78], "valid_blocks": 20}')
+  params.put("CalibrationParams", '{"valid_blocks": 20, "calib_radians": [0,0,0]}')
 
   # no carla, still run
   try:

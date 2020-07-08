@@ -40,12 +40,17 @@ def keyboard_poll_thread(q):
     print("got %s" % c)
     if c == '1':
       q.put(str("cruise_up"))
-    if c == '2':
+    elif c == '2':
       q.put(str("cruise_down"))
-    if c == '3':
+    elif c == '3':
       q.put(str("cruise_cancel"))
-    if c == 'q':
+    elif c == 'q':
       exit(0)
+    elif c == 'a':
+      q.put(str("steer_-1."))
+    elif c == 'd':
+      q.put(str("steer_+1."))
+    
 
 def test(q):
   while 1:

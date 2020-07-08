@@ -263,7 +263,7 @@ static void read_path(PathData& p, const cereal::ModelData::PathData::Reader &pa
 }
 
 static void read_model(ModelData &d, const cereal::ModelData::Reader &model) {
-  d = {};
+  //d = {};
   read_path(d.path, model.getPath());
   read_path(d.left_lane, model.getLeftLane());
   read_path(d.right_lane, model.getRightLane());

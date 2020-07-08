@@ -42,11 +42,16 @@
 
 #ifndef QCOM
   #define UI_60FPS
+  #define SCALE_V(v) ((v)/2.0)
+#else
+  #define SCALE_V(v) ((v)/1.0)
 #endif
 
 #define UI_BUF_COUNT 4
 //#define SHOW_SPEEDLIMIT 1
 //#define DEBUG_TURN
+
+
 
 const int vwp_w = 1920;
 const int vwp_h = 1080;

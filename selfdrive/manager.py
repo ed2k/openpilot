@@ -203,8 +203,10 @@ running: Dict[str, Process] = {}
 def get_running():
   return running
 
+unkillable_processes = []
 # due to qualcomm kernel bugs SIGKILLing camerad sometimes causes page table corruption
-unkillable_processes = ['camerad']
+if os.getenv("NOBOARD") is None:
+  unkillable_processes = ['camerad']
 
 # processes to end with SIGINT instead of SIGTERM
 interrupt_processes: List[str] = []

@@ -695,12 +695,12 @@ static void ui_draw_vision(UIState *s) {
 
   // Draw video frames
   glEnable(GL_SCISSOR_TEST);
-  glViewport(scene->ui_viz_rx+scene->ui_viz_ro, s->fb_h-(box_y+box_h), viz_w, box_h);
+  glViewport(SCALE_V(scene->ui_viz_rx+scene->ui_viz_ro), SCALE_V(s->fb_h-(box_y+box_h)), SCALE_V(viz_w), SCALE_V(box_h));
   glScissor(scene->ui_viz_rx, s->fb_h-(box_y+box_h), scene->ui_viz_rw, box_h);
   draw_frame(s);
   glDisable(GL_SCISSOR_TEST);
 
-  glViewport(0, 0, s->fb_w, s->fb_h);
+  glViewport(0, 0, SCALE_V(1920), SCALE_V(1080));
 
   // Draw augmented elements
   if (!scene->frontview && !scene->fullview) {
@@ -736,7 +736,7 @@ void ui_draw(UIState *s) {
   ui_draw_background(s);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glViewport(0, 0, s->fb_w, s->fb_h);
+  glViewport(0, 0, SCALE_V(1920), SCALE_V(1080));
   nvgBeginFrame(s->vg, s->fb_w, s->fb_h, 1.0f);
   ui_draw_sidebar(s);
   if (s->started && s->active_app == cereal::UiLayoutState::App::NONE && s->status != STATUS_STOPPED && s->vision_seen) {
@@ -892,7 +892,7 @@ void ui_nvg_init(UIState *s) {
   s->frame_texture_loc = glGetUniformLocation(s->frame_program, "uTexture");
   s->frame_transform_loc = glGetUniformLocation(s->frame_program, "uTransform");
 
-  glViewport(0, 0, s->fb_w, s->fb_h);
+  glViewport(0, 0, SCALE_V(1920), SCALE_V(1080));
 
   glDisable(GL_DEPTH_TEST);
 

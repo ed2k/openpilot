@@ -37,7 +37,7 @@ FramebufferState* framebuffer_init(
 #endif
   glfwWindowHint(GLFW_RESIZABLE, 0);
   GLFWwindow* window;
-  window = glfwCreateWindow(1920, 1080, "ui", NULL, NULL);
+  window = glfwCreateWindow(SCALE_V(1920), SCALE_V(1080), "ui", NULL, NULL);
   if (!window) {
     printf("glfwCreateWindow failed\n");
   }

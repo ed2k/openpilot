@@ -98,6 +98,10 @@ int main(int argc, char **argv) {
     cl_uint num_platforms;
     err = clGetPlatformIDs(0, NULL, &num_platforms);
     assert(err == 0);
+    if (!num_platforms){
+      LOGE("No valid openCL platform found");
+      assert(num_platforms);
+    }
 
     cl_platform_id * platform_ids = new cl_platform_id[num_platforms];
     err = clGetPlatformIDs(num_platforms, platform_ids, NULL);
@@ -116,7 +120,11 @@ int main(int argc, char **argv) {
       cl_uint num_devices;
       err = clGetDeviceIDs(platform_ids[i], device_type, 0, NULL, &num_devices);
       if (err != 0|| !num_devices){
-        continue;
+        device_type = CL_DEVICE_TYPE_GPU;
+        err = clGetDeviceIDs(platform_ids[i], device_type, 0, NULL, &num_devices);
+        if (err != 0|| !num_devices){
+          continue;
+        }
       }
 
       // Get first device
