@@ -7,7 +7,7 @@ pipeline {
   }
   environment {
     COMMA_JWT = credentials('athena-test-jwt')
-    SETUP = 'for i in {1..5}; do pip install paramiko && break || ret=$? && sleep 10; done; (exit $ret)'
+    SETUP = 'for i in 1 2 3; do pip install paramiko && break || ret=$? && sleep 10; done; (exit $ret)'
   }
 
   stages {
