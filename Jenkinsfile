@@ -7,6 +7,13 @@ pipeline {
   }
   environment {
     COMMA_JWT = credentials('athena-test-jwt')
+
+    SETUP = '''
+      for i in {1..5}; do
+        pip install paramiko && break
+        echo "pip install failed"
+      done
+    '''
   }
 
   stages {
@@ -19,7 +26,7 @@ pipeline {
         lock(resource: "", label: 'eon-build', inversePrecedence: true, variable: 'eon_ip', quantity: 1){
           timeout(time: 60, unit: 'MINUTES') {
             dir(path: 'selfdrive/test') {
-              sh 'pip install paramiko'
+              sh '$SETUP'
               sh 'python phone_ci.py "cd release && PUSH=1 ./build_release2.sh"'
             }
           }
@@ -47,7 +54,7 @@ pipeline {
             lock(resource: "", label: 'eon', inversePrecedence: true, variable: 'eon_ip', quantity: 1){
               timeout(time: 60, unit: 'MINUTES') {
                 dir(path: 'selfdrive/test') {
-                  sh 'pip install paramiko'
+                  sh '$SETUP'
                   sh 'python phone_ci.py "cd release && ./build_devel.sh"'
                 }
               }
@@ -60,7 +67,7 @@ pipeline {
             lock(resource: "", label: 'eon2', inversePrecedence: true, variable: 'eon_ip', quantity: 1){
               timeout(time: 60, unit: 'MINUTES') {
                 dir(path: 'selfdrive/test') {
-                  sh 'pip install paramiko'
+                  sh '$SETUP'
                   sh 'python phone_ci.py "cd selfdrive/test/process_replay && ./camera_replay.py"'
                 }
               }
@@ -73,7 +80,7 @@ pipeline {
             lock(resource: "", label: 'eon', inversePrecedence: true, variable: 'eon_ip', quantity: 1){
               timeout(time: 60, unit: 'MINUTES') {
                 dir(path: 'selfdrive/test') {
-                  sh 'pip install paramiko'
+                  sh '$SETUP'
                   sh 'python phone_ci.py "SCONS_CACHE=1 scons -j3 cereal/ && \
                                           nosetests -s selfdrive/test/test_sounds.py && \
                                           nosetests -s selfdrive/boardd/tests/test_boardd_loopback.py"'
