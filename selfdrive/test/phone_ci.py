@@ -71,7 +71,7 @@ def run_on_phone(test_cmd):
   conn.send("exit\n")
 
   dat = b""
-  conn.settimeout(240)
+  conn.settimeout(330)
 
   while True:
     try:
